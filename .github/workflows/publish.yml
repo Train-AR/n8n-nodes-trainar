@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write # Required for npm Trusted Publishers + provenance
+  id-token: write  # Required for npm Trusted Publishers + provenance
 
 jobs:
   publish:
@@ -31,5 +31,7 @@ jobs:
       - name: Lint (publish-strict)
         run: npm run lint
 
-      - name: Publish to npm with provenance
+      - name: Publish to npm
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
