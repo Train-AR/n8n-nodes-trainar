@@ -10,7 +10,8 @@ export class TrainarApi implements ICredentialType {
 
 	displayName = 'TrainAR API';
 
-	documentationUrl = 'https://dashboard.trainar.ai/dashboard/api';
+	// eslint-disable-next-line n8n-nodes-base/cred-class-field-documentation-url-miscased
+	documentationUrl = 'https://github.com/train-ar/n8n-nodes-trainar';
 
 	properties: INodeProperties[] = [
 		{

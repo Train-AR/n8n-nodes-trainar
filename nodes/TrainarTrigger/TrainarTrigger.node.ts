@@ -32,7 +32,7 @@ export class TrainarTrigger implements INodeType {
 		description: 'Triggers when a TrainAR event fires',
 		defaults: { name: 'TrainAR Trigger' },
 		inputs: [],
-		outputs: ['main' as any],
+		outputs: ['main'],
 		credentials: [{ name: 'trainarApi', required: true }],
 		webhooks: [
 			{
@@ -53,6 +53,26 @@ export class TrainarTrigger implements INodeType {
 					'TrainAR events to subscribe to. The webhook fires on every event you select.',
 				options: [
 					{
+						name: 'Session Completed',
+						value: 'session.completed',
+						description: 'A training session ended',
+					},
+					{
+						name: 'Session Started',
+						value: 'session.started',
+						description: 'A training session started on an AR device',
+					},
+					{
+						name: 'Skill Executed',
+						value: 'skill.executed',
+						description: 'A TrainAR skill was executed (success or failure)',
+					},
+					{
+						name: 'Task Completed',
+						value: 'task.completed',
+						description: 'A task was completed',
+					},
+					{
 						name: 'Task Created',
 						value: 'task.created',
 						description: 'A new operational task was created',
@@ -61,26 +81,6 @@ export class TrainarTrigger implements INodeType {
 						name: 'Task Status Changed',
 						value: 'task.status_changed',
 						description: 'A task changed status (open / in_progress / completed / cancelled)',
-					},
-					{
-						name: 'Task Completed',
-						value: 'task.completed',
-						description: 'A task was completed',
-					},
-					{
-						name: 'Session Started',
-						value: 'session.started',
-						description: 'A training session started on an AR device',
-					},
-					{
-						name: 'Session Completed',
-						value: 'session.completed',
-						description: 'A training session ended',
-					},
-					{
-						name: 'Skill Executed',
-						value: 'skill.executed',
-						description: 'A TrainAR skill was executed (success or failure)',
 					},
 				],
 			},
