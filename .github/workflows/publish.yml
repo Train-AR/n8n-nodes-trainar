@@ -22,6 +22,17 @@ jobs:
           node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Strip placeholder auth token (let OIDC handle Trusted Publisher)
+        run: |
+          # setup-node always writes //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
+          # to the user .npmrc. When NODE_AUTH_TOKEN is unset, this becomes an empty
+          # token that blocks the OIDC fallback. Strip it so npm uses the GH Actions
+          # OIDC token via the Trusted Publisher binding instead.
+          sed -i '/_authToken/d' "$NPM_CONFIG_USERCONFIG" || true
+          echo "--- .npmrc after strip ---"
+          cat "$NPM_CONFIG_USERCONFIG" || true
+          echo "--- end ---"
+
       - name: Install dependencies
         run: npm ci
 
