@@ -5,7 +5,7 @@ import {
 	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
-	
+	NodeOperationError,
 } from 'n8n-workflow';
 
 const BASE_URL = 'https://xddgmkiguaohdewecmju.supabase.co/functions/v1';
@@ -56,7 +56,17 @@ export class Trainar implements INodeType {
 						action: 'Create a task',
 						description: 'Create a new operational task',
 						routing: {
-							request: { method: 'POST', url: '/api-tenant-tasks' },
+							request: {
+								method: 'POST',
+								url: '/api-tenant-tasks',
+								body: {
+									title: '={{$parameter["title"]}}',
+									description: '={{$parameter["description"]}}',
+									priority: '={{$parameter["priority"]}}',
+									assigned_to: '={{$parameter["assignedTo"] || undefined}}',
+									external_id: '={{$parameter["externalId"] || undefined}}',
+								},
+							},
 						},
 					},
 					{
@@ -68,6 +78,7 @@ export class Trainar implements INodeType {
 							request: {
 								method: 'PATCH',
 								url: '=/api-tenant-tasks?task_id={{$parameter["taskId"]}}',
+								body: { status: '={{$parameter["status"]}}' },
 							},
 						},
 					},
@@ -95,7 +106,6 @@ export class Trainar implements INodeType {
 				required: true,
 				default: '',
 				displayOptions: { show: { resource: ['task'], operation: ['create'] } },
-				routing: { request: { body: { title: '={{$value}}' } } },
 			},
 			{
 				displayName: 'Description',
@@ -103,7 +113,6 @@ export class Trainar implements INodeType {
 				type: 'string',
 				default: '',
 				displayOptions: { show: { resource: ['task'], operation: ['create'] } },
-				routing: { request: { body: { description: '={{$value}}' } } },
 			},
 			{
 				displayName: 'Priority',
@@ -116,7 +125,6 @@ export class Trainar implements INodeType {
 					{ name: 'High', value: 'high' },
 				],
 				displayOptions: { show: { resource: ['task'], operation: ['create'] } },
-				routing: { request: { body: { priority: '={{$value}}' } } },
 			},
 			{
 				displayName: 'Assigned To Name or ID',
@@ -126,7 +134,6 @@ export class Trainar implements INodeType {
 				typeOptions: { loadOptionsMethod: 'getUsers' },
 				default: '',
 				displayOptions: { show: { resource: ['task'], operation: ['create'] } },
-				routing: { request: { body: { assigned_to: '={{$value}}' } } },
 			},
 			{
 				displayName: 'External ID',
@@ -134,7 +141,6 @@ export class Trainar implements INodeType {
 				type: 'string',
 				default: '',
 				displayOptions: { show: { resource: ['task'], operation: ['create'] } },
-				routing: { request: { body: { external_id: '={{$value}}' } } },
 			},
 
 			// Task Update Status fields
@@ -173,7 +179,6 @@ export class Trainar implements INodeType {
 					{ name: 'Cancelled', value: 'cancelled' },
 				],
 				displayOptions: { show: { resource: ['task'], operation: ['updateStatus'] } },
-				routing: { request: { body: { status: '={{$value}}' } } },
 			},
 
 			// Task Find fields
@@ -213,7 +218,15 @@ export class Trainar implements INodeType {
 						action: 'Invite a user',
 						description: 'Send an invitation email to a new user',
 						routing: {
-							request: { method: 'POST', url: '/api-tenant-users' },
+							request: {
+								method: 'POST',
+								url: '/api-tenant-users',
+								body: {
+									email: '={{$parameter["email"]}}',
+									full_name: '={{$parameter["fullName"]}}',
+									roles: '={{$parameter["roles"]}}',
+								},
+							},
 						},
 					},
 					{
@@ -239,7 +252,6 @@ export class Trainar implements INodeType {
 				default: '',
 				placeholder: 'j.smith@example.com',
 				displayOptions: { show: { resource: ['user'], operation: ['invite'] } },
-				routing: { request: { body: { email: '={{$value}}' } } },
 			},
 			{
 				displayName: 'Full Name',
@@ -249,7 +261,6 @@ export class Trainar implements INodeType {
 				default: '',
 				placeholder: 'Jane Smith',
 				displayOptions: { show: { resource: ['user'], operation: ['invite'] } },
-				routing: { request: { body: { full_name: '={{$value}}' } } },
 			},
 			{
 				displayName: 'Roles',
@@ -261,7 +272,6 @@ export class Trainar implements INodeType {
 				description:
 					'Currently the tenant API accepts only ["admin"]. Trainer/trainee assignment lives in the seat-assignment endpoints, not here.',
 				displayOptions: { show: { resource: ['user'], operation: ['invite'] } },
-				routing: { request: { body: { roles: '={{$value}}' } } },
 			},
 			{
 				displayName: 'Limit',
@@ -291,7 +301,15 @@ export class Trainar implements INodeType {
 						description:
 							"Run a TrainAR skill server-to-server. session_context is auto-resolved from the tenant's first active assigned seat unless supplied.",
 						routing: {
-							request: { method: 'POST', url: '/api-tenant-skills-execute' },
+							request: {
+								method: 'POST',
+								url: '/api-tenant-skills-execute',
+								body: {
+									skill_id: '={{$parameter["skillId"]}}',
+									arguments: '={{JSON.parse($parameter["skillArguments"] || "{}")}}',
+									session_context: '={{JSON.parse($parameter["sessionContextOverride"] || "{}")}}',
+								},
+							},
 						},
 					},
 				],
@@ -305,7 +323,6 @@ export class Trainar implements INodeType {
 				placeholder: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
 				description: 'The UUID of the skill to execute',
 				displayOptions: { show: { resource: ['skill'], operation: ['execute'] } },
-				routing: { request: { body: { skill_id: '={{$value}}' } } },
 			},
 			{
 				displayName: 'Arguments',
@@ -315,7 +332,6 @@ export class Trainar implements INodeType {
 				default: '{}',
 				description: 'JSON object of arguments forwarded to the skill webhook',
 				displayOptions: { show: { resource: ['skill'], operation: ['execute'] } },
-				routing: { request: { body: { arguments: '={{JSON.parse($value)}}' } } },
 			},
 			{
 				displayName: 'Session Context Override',
@@ -325,14 +341,6 @@ export class Trainar implements INodeType {
 				description:
 					"Optional override. If empty or null, session_context is auto-resolved from the tenant's first active seat (NO_ACTIVE_SEAT 400 if none qualify). For explicit override pass `{ customer_id, seat_id, user_id, role }`.",
 				displayOptions: { show: { resource: ['skill'], operation: ['execute'] } },
-				routing: {
-					request: {
-						body: {
-							session_context:
-								'={{ JSON.parse($value || "{}") }}',
-						},
-					},
-				},
 			},
 		],
 	};
@@ -379,14 +387,63 @@ export class Trainar implements INodeType {
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-		// Declarative routing handles dispatch — execute() is only invoked
-		// for operations that need post-processing (currently: Task Find client-side filter).
+		// When execute() is defined, n8n SKIPS declarative routing entirely.
+		// All HTTP dispatch lives here.
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
+
+		const optional = <T>(name: string, i: number, fallback: T): T => {
+			try {
+				const v = this.getNodeParameter(name, i, fallback as any);
+				return (v === '' || v === null || v === undefined ? fallback : v) as T;
+			} catch {
+				return fallback;
+			}
+		};
 
 		for (let i = 0; i < items.length; i++) {
 			const resource = this.getNodeParameter('resource', i) as string;
 			const operation = this.getNodeParameter('operation', i) as string;
+
+			if (resource === 'task' && operation === 'create') {
+				const body: Record<string, unknown> = {
+					title: this.getNodeParameter('title', i) as string,
+					priority: this.getNodeParameter('priority', i, 'medium') as string,
+				};
+				const description = optional<string>('description', i, '');
+				if (description) body.description = description;
+				const assignedTo = optional<string>('assignedTo', i, '');
+				if (assignedTo) body.assigned_to = assignedTo;
+				const externalId = optional<string>('externalId', i, '');
+				if (externalId) body.external_id = externalId;
+				const response = await this.helpers.httpRequestWithAuthentication.call(
+					this,
+					'trainarApi',
+					{ method: 'POST', url: `${BASE_URL}/api-tenant-tasks`, body, json: true },
+				);
+				returnData.push({ json: response as any });
+				continue;
+			}
+
+			if (resource === 'task' && operation === 'updateStatus') {
+				const rl = this.getNodeParameter('taskId', i) as { value?: string } | string;
+				const taskId = typeof rl === 'string' ? rl : (rl?.value ?? '');
+				if (!taskId) throw new NodeOperationError(this.getNode(), 'TrainAR: Task ID is required for Update Status');
+				const status = this.getNodeParameter('status', i) as string;
+				const response = await this.helpers.httpRequestWithAuthentication.call(
+					this,
+					'trainarApi',
+					{
+						method: 'PATCH',
+						url: `${BASE_URL}/api-tenant-tasks`,
+						qs: { task_id: taskId },
+						body: { status },
+						json: true,
+					},
+				);
+				returnData.push({ json: response as any });
+				continue;
+			}
 
 			if (resource === 'task' && operation === 'find') {
 				const limit = this.getNodeParameter('limit', i) as number;
@@ -406,9 +463,57 @@ export class Trainar implements INodeType {
 				continue;
 			}
 
-			// All other operations go through declarative routing, but we still need
-			// to return *something*. Pass-through.
-			returnData.push(items[i]);
+			if (resource === 'user' && operation === 'invite') {
+				const body = {
+					email: this.getNodeParameter('email', i) as string,
+					full_name: this.getNodeParameter('fullName', i) as string,
+					roles: this.getNodeParameter('roles', i) as string[],
+				};
+				const response = await this.helpers.httpRequestWithAuthentication.call(
+					this,
+					'trainarApi',
+					{ method: 'POST', url: `${BASE_URL}/api-tenant-users`, body, json: true },
+				);
+				returnData.push({ json: response as any });
+				continue;
+			}
+
+			if (resource === 'user' && operation === 'find') {
+				const limit = this.getNodeParameter('limit', i) as number;
+				const response = await this.helpers.httpRequestWithAuthentication.call(
+					this,
+					'trainarApi',
+					{ method: 'GET', url: `${BASE_URL}/api-tenant-users`, qs: { limit } },
+				);
+				const users = Array.isArray(response) ? response : response.users ?? [];
+				users.forEach((u: object) => returnData.push({ json: u as any }));
+				continue;
+			}
+
+			if (resource === 'skill' && operation === 'execute') {
+				const skillId = this.getNodeParameter('skillId', i) as string;
+				const argsRaw = optional<string>('skillArguments', i, '{}');
+				const ctxRaw = optional<string>('sessionContextOverride', i, '{}');
+				let argsParsed: unknown;
+				let ctxParsed: unknown;
+				try { argsParsed = JSON.parse(argsRaw || '{}'); }
+				catch { throw new NodeOperationError(this.getNode(), 'TrainAR: Arguments must be valid JSON'); }
+				try { ctxParsed = JSON.parse(ctxRaw || '{}'); }
+				catch { throw new NodeOperationError(this.getNode(), 'TrainAR: Session Context Override must be valid JSON'); }
+				const body: Record<string, unknown> = { skill_id: skillId, arguments: argsParsed };
+				if (ctxParsed && Object.keys(ctxParsed as object).length > 0) {
+					body.session_context = ctxParsed;
+				}
+				const response = await this.helpers.httpRequestWithAuthentication.call(
+					this,
+					'trainarApi',
+					{ method: 'POST', url: `${BASE_URL}/api-tenant-skills-execute`, body, json: true },
+				);
+				returnData.push({ json: response as any });
+				continue;
+			}
+
+			throw new NodeOperationError(this.getNode(), `TrainAR: Unsupported operation ${resource}.${operation}`);
 		}
 
 		return [returnData];
