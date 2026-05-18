@@ -23,10 +23,6 @@ export class Trainar implements INodeType {
 		inputs: ['main'],
 		outputs: ['main'],
 		credentials: [{ name: 'trainarApi', required: true }],
-		requestDefaults: {
-			baseURL: BASE_URL,
-			headers: { 'Content-Type': 'application/json' },
-		},
 		properties: [
 			{
 				displayName: 'Resource',
@@ -55,45 +51,18 @@ export class Trainar implements INodeType {
 						value: 'create',
 						action: 'Create a task',
 						description: 'Create a new operational task',
-						routing: {
-							request: {
-								method: 'POST',
-								url: '/api-tenant-tasks',
-								body: {
-									title: '={{$parameter["title"]}}',
-									description: '={{$parameter["description"]}}',
-									priority: '={{$parameter["priority"]}}',
-									assigned_to: '={{$parameter["assignedTo"] || undefined}}',
-									external_id: '={{$parameter["externalId"] || undefined}}',
-								},
-							},
-						},
 					},
 					{
 						name: 'Update Status',
 						value: 'updateStatus',
 						action: 'Update task status',
 						description: 'Update the status of an existing task',
-						routing: {
-							request: {
-								method: 'PATCH',
-								url: '=/api-tenant-tasks?task_id={{$parameter["taskId"]}}',
-								body: { status: '={{$parameter["status"]}}' },
-							},
-						},
 					},
 					{
 						name: 'Find',
 						value: 'find',
 						action: 'Find tasks',
 						description: 'List recent tasks; optionally filter client-side by title',
-						routing: {
-							request: {
-								method: 'GET',
-								url: '/api-tenant-tasks',
-								qs: { limit: '={{$parameter["limit"]}}' },
-							},
-						},
 					},
 				],
 			},
@@ -217,30 +186,12 @@ export class Trainar implements INodeType {
 						value: 'invite',
 						action: 'Invite a user',
 						description: 'Send an invitation email to a new user',
-						routing: {
-							request: {
-								method: 'POST',
-								url: '/api-tenant-users',
-								body: {
-									email: '={{$parameter["email"]}}',
-									full_name: '={{$parameter["fullName"]}}',
-									roles: '={{$parameter["roles"]}}',
-								},
-							},
-						},
 					},
 					{
 						name: 'Find',
 						value: 'find',
 						action: 'Find users',
 						description: 'List users in the tenant',
-						routing: {
-							request: {
-								method: 'GET',
-								url: '/api-tenant-users',
-								qs: { limit: '={{$parameter["limit"]}}' },
-							},
-						},
 					},
 				],
 			},
@@ -300,17 +251,6 @@ export class Trainar implements INodeType {
 						action: 'Execute a skill',
 						description:
 							"Run a TrainAR skill server-to-server. session_context is auto-resolved from the tenant's first active assigned seat unless supplied.",
-						routing: {
-							request: {
-								method: 'POST',
-								url: '/api-tenant-skills-execute',
-								body: {
-									skill_id: '={{$parameter["skillId"]}}',
-									arguments: '={{JSON.parse($parameter["skillArguments"] || "{}")}}',
-									session_context: '={{JSON.parse($parameter["sessionContextOverride"] || "{}")}}',
-								},
-							},
-						},
 					},
 				],
 			},
