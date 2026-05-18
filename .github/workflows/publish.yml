@@ -19,12 +19,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
+          node-version: '24.x'  # ships with npm 11+ for native Trusted Publisher OIDC
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Bump npm to latest (need >=11.5 for native Trusted Publisher OIDC)
+      - name: Show versions
         run: |
-          npm install -g npm@latest
+          node --version
           npm --version
 
       - name: Install dependencies
