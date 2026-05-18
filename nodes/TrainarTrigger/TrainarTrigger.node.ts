@@ -21,6 +21,27 @@ interface CheckExistsResponse {
 	url?: string;
 }
 
+function isNotFoundError(error: unknown): boolean {
+	if (!error || typeof error !== 'object') return false;
+	const err = error as {
+		httpCode?: string | number;
+		statusCode?: string | number;
+		status?: string | number;
+		response?: { status?: number; statusCode?: number };
+		cause?: { response?: { status?: number }; statusCode?: number };
+	};
+	const candidates: Array<string | number | undefined> = [
+		err.httpCode,
+		err.statusCode,
+		err.status,
+		err.response?.status,
+		err.response?.statusCode,
+		err.cause?.response?.status,
+		err.cause?.statusCode,
+	];
+	return candidates.some((c) => c !== undefined && Number(c) === 404);
+}
+
 export class TrainarTrigger implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'TrainAR Trigger',
@@ -105,8 +126,11 @@ export class TrainarTrigger implements INodeType {
 						},
 					)) as CheckExistsResponse;
 					return response.exists === true;
-				} catch {
-					return false;
+				} catch (error) {
+					if (isNotFoundError(error)) {
+						return false;
+					}
+					throw error;
 				}
 			},
 
